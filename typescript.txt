@@ -1,0 +1,151 @@
+Define your own type:
+      type Combinable = number | string;
+
+Function types:
+      The specification of the return type of a callback function is not checked
+
+      i.e.
+            function sendrequest(n1: number, cb: (n: number) => void) {
+                  cb(n1);
+            }
+
+            sendrequest(2, (n) => 33); 
+
+      Here while calling the sendrequest, we are passing the callback which returns a number not void, but the typescript will not complain. 
+      
+      Note: valid for void returns only, if you specify something other than void and return another type than the specified type, it will yell.
+
+type 'unknown'
+      similar to any but will not let you to directly assign the variable of unknown type to the variable of some other type. i.e.
+
+      let n1: unknown;
+      let n2: string;
+
+      n2 = n1;   // Error!
+      requires typechecking before assignment.
+
+      if(typeof n1 === 'string') {
+            n2 = n1;
+      }
+
+      if you change n1 to any then error goes away.
+
+type never
+      It is used for functions which will never return (functions which always throw or go into the infinite loop)
+
+tsconfig.json
+      exclude, include, files properties
+
+
+compilerOptions lib
+      specifies default set of type definitions that the typescript should compile against
+
+      https://www.typescriptlang.org/tsconfig/#lib
+
+sourceMap
+      Enables generation of the mapping from js files to ts files to enable debugging.
+
+Catch no binding error by specifying this parameter in the method
+      class Department {
+            departmentName: string;
+            departmentId: number;
+            constructor(departmentName: string, departmentId: number) {
+                  this.departmentName = departmentName;
+                  this.departmentId = departmentId;
+            }      
+            toString(this: Department) {
+                  return `Department Name: ${this.departmentName}, Department Id: ${this.departmentId}`;
+            }
+      }
+
+interface for the function types
+      interface AddFn {
+            (a: number, b: number): number;
+      }
+
+      is equivalent to 
+      type AddFn = (a: number, b:number): number;
+
+check whether a property is there in the object with the condition
+      'property' in variable
+
+check whether an object is an instance of the class  
+      obj instanceof cls
+
+Use discriminated union types for type checking
+      assign type to a literal string.
+
+      interface Bird {
+            type: 'bird';
+            flyingSpeed: number;
+      }
+      interface Horse {
+            type: 'horse';
+            runningSpeed: number;
+      }
+      type Animal = Bird | Horse
+
+      function moveAnimal(animal: Animal) {
+            let speed = 0;
+            switch(animal.type) {
+                  case 'bird':
+                        speed = animal.flyingSpeed;
+                        break;
+                  case 'horse':
+                        speed = animal.runningSpeed;
+                        break;
+            }
+            return speed;
+      }
+
+      Here since the typescript knows that type exists on each type, it can provide the values in autocompletion and hightlight errors when typos occur since we are assigning literal strings as types.
+
+Type casting
+      const userInput = <HTMLInputElement>document.getElementById('user-input')!;
+      const userInput = document.getElementById('user-input')! as HTMLInputElement;
+
+
+Indexed types
+      interface ErrorContainer {
+            [prop: string]: string;
+      }
+
+      NOTE: if any other required properties needs to be added, they should match in type for prop and value type.
+      i.e.
+      interface ErrorContainer {
+            email: string;
+            [prop: string]: string;
+      }
+
+
+Function overloads
+      type Combinable = number | string;
+
+      function add(a: number, b: number): number;
+      function add(a: string, b: string): string;
+      function add(a: number, b: string): string;
+      function add(a: string, b: number): string;
+      function add(a: Combinable, b: Combinable) {
+            if(typeof a === 'string' || typeof b === 'string) {
+                  return a.toString() + b.toString();
+            }
+            return a + b;
+      }
+
+
+Nullish coalescing
+      
+      const userInput = input ?? "DEFAULT"
+
+      will fall back only if input is null or undefined
+
+
+keyof to specify that the value should be a key to the object
+      function extractAndConvert<T extends object, V extends keyof T>(obj: T, key: V) {
+            return 'Value: ' + obj[key];
+      }
+      extractAndConvert({ name: 'Max' }, 'name');
+
+
+Decorators can return on class and methods 
+Return values on property and parameter decorators will be ignored
