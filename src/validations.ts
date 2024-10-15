@@ -1,9 +1,15 @@
 export enum VALIDATIONS {
-      REQUIRED,
-      VALID_NAME,
-      POSITIVE_LENGTH,
-      ISNUMBER
+      REQUIRED = "REQUIRED",
+      VALID_NAME = "VALID_NAME",
+      POSITIVE_LENGTH = "POSITIVE_LENGTH",
+      ISNUMBER = "ISNUMBER"
 }
+
+type validationFunc = (value: string | number) => boolean;
+
+type ValidationFuncMappings = {
+      [prop in VALIDATIONS]: validationFunc;
+};
 
 function required(value: string | number) {
       return value.toString().trim().length > 0;
@@ -13,8 +19,8 @@ function positiveLength(value: string | number) {
       return typeof value === 'string' ? Number(value.trim()) > 0 : value > 0;
 }
 
-function validName(value: string) {
-      return /^[a-zA-Z]+$/.test(value);
+function validName(value: string | number) {
+      return /^[a-zA-Z]+$/.test(value.toString());
 }
 
 function isNumber(value: string | number) {
@@ -28,7 +34,7 @@ const VALIDATION_ERRORS = {
       [VALIDATIONS.ISNUMBER]: 'Please enter a valid number'
 }
 
-const VALIDATION_FUNC_MAPPINGS = {
+const VALIDATION_FUNC_MAPPINGS: ValidationFuncMappings = {
       [VALIDATIONS.REQUIRED]: required,
       [VALIDATIONS.POSITIVE_LENGTH]: positiveLength,
       [VALIDATIONS.VALID_NAME]: validName,
