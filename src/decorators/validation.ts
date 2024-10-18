@@ -1,42 +1,73 @@
-namespace App {
-      interface Validatable {
-            required?: boolean;
-            isNumber?: boolean;
-            minLength?: number;
-            maxLength?: number;
-            min?: number;
-            max?: number;
-      }
+interface Validatable {
+      required?: boolean;
+      isNumber?: boolean;
+      minLength?: number;
+      maxLength?: number;
+      min?: number;
+      max?: number;
+}
 
-      interface ValidationConfig {
-            [className: string]: {
-                  [property: string]: Validatable;
+interface ValidatablePropsConfig {
+      [property: string]: Validatable
+}
+
+interface ValidationConfig {
+      [className: string]: {
+            __classRef: any,
+            validatableProps: ValidatablePropsConfig;
+      }[]
+}
+
+export interface ValidationResult {
+      isValid: boolean;
+      errors: string[];
+}
+
+interface LabelPropMapping {
+      [prop: string]: string;
+}
+export const globalValidationConfig: ValidationConfig = {};
+
+function getObjectValidatable(instance: any) {
+      return globalValidationConfig[instance.constructor.name].find(cl => cl.__classRef === instance.__proto__)?.validatableProps;
+}
+
+function getClassValidatable(target: any): ValidatablePropsConfig {
+      let validatableObj = {} as ValidatablePropsConfig;
+      if (!globalValidationConfig[target.constructor.name]) {
+            globalValidationConfig[target.constructor.name] = [{
+                  __classRef: target,
+                  validatableProps: validatableObj
+            }];
+      } else {
+            const result = globalValidationConfig[target.constructor.name].find(cl => cl.__classRef === target);
+            if (result) {
+                  validatableObj = result.validatableProps;
+            } else {
+                  globalValidationConfig[target.constructor.name].push({
+                        __classRef: target,
+                        validatableProps: validatableObj
+                  })
             }
       }
+      return validatableObj;
 
-      export interface ValidationResult {
-            isValid: boolean;
-            errors: string[];
+}
+
+export function Validator(validatable: Validatable) {
+      return function (target: any, propertyName: string) {
+            const validatableObj = getClassValidatable(target);
+            validatableObj[propertyName] = validatable;
       }
+}
 
-      interface LabelPropMapping {
-            [prop: string]: string;
-      }
-      const globalValidationConfig: ValidationConfig = {};
-
-      export function Validator(validatable: Validatable) {
-            return function (target: any, propertyName: string) {
-                  globalValidationConfig[target.constructor.name] = {
-                        ...globalValidationConfig[target.constructor.name],
-                        [propertyName]: validatable
-                  };
-            }
-      }
-
-      export function validate(obj: any, getValue?: (value: HTMLInputElement) => string, getLabel?: LabelPropMapping): ValidationResult {
-            const objConfig = globalValidationConfig[obj.constructor.name];
-            let isValid = true;
-            let errors: string[] = [];
+export function validate(obj: any, getValue?: (value: HTMLInputElement) => string, getLabel?: LabelPropMapping): ValidationResult {
+      let isValid = true;
+      let errors: string[] = [];
+      let firstLevel = true;
+      let loopingObj = obj;
+      while (loopingObj.__proto__ !== Object.prototype) {
+            const objConfig = getObjectValidatable(loopingObj);
             if (!objConfig) {
                   return {
                         isValid,
@@ -46,7 +77,7 @@ namespace App {
             for (const property in objConfig) {
                   const validators: Validatable | null = objConfig[property];
                   if (validators !== null) {
-                        const propValue = getValue && typeof getValue === 'function' ? getValue(obj[property]).trim() : obj[property].toString().trim();
+                        const propValue = getValue && typeof getValue === 'function' && firstLevel ? getValue(obj[property]).trim() : obj[property].toString().trim();
                         const propertyLabel = getLabel && typeof getLabel === 'object' ? getLabel[property] : property;
                         if (validators.required) {
                               isValid = isValid && !!propValue;
@@ -70,8 +101,8 @@ namespace App {
                               }
                         }
                         if (validators.isNumber) {
-                              isValid = isValid && !isNaN(Number(propValue));
-                              if (isNaN(Number(propValue))) {
+                              isValid = isValid && propValue.trim() !== "" && !isNaN(Number(propValue));
+                              if (propValue.trim() === "" || isNaN(Number(propValue))) {
                                     errors.push(`${propertyLabel} should be a number`);
                                     continue;
                               }
@@ -92,10 +123,11 @@ namespace App {
                         }
                   }
             }
-            return {
-                  isValid,
-                  errors
-            }
+            firstLevel = false;
+            loopingObj = loopingObj.__proto__;
       }
-
+      return {
+            isValid,
+            errors
+      }
 }

@@ -1,10 +1,14 @@
-/// <reference path="models/project-model.ts" />
-/// <reference path="components/ProjectInput.ts" />
-/// <reference path="components/ProjectItem.ts" />
-/// <reference path="components/ProjectList.ts" />
+import { ProjectInput } from "./components/ProjectInput.js";
+import { ProjectList } from "./components/ProjectList.js";
+import { ProjectStatus } from "./models/project-model.js";
+import { ProjectInput as Something } from "./SomethingMore.js";
+import { globalValidationConfig, validate } from "./decorators/validation.js";
 
-namespace App {
-      new ProjectInput();
-      new ProjectList(ProjectStatus.ACTIVE);
-      new ProjectList(ProjectStatus.FINISHED);
-}
+new ProjectInput();
+new ProjectList(ProjectStatus.ACTIVE);
+new ProjectList(ProjectStatus.FINISHED);
+const something = new Something("New Differenjfo");
+
+console.log(globalValidationConfig);
+
+console.log(validate(something));
