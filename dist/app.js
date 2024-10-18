@@ -310,4 +310,7 @@ __decorate([
 __decorate([
     AutoBind
 ], ProjectList.prototype, "dragLeaveHandler", null);
+new ProjectInput();
+new ProjectList(ProjectStatus.ACTIVE);
+new ProjectList(ProjectStatus.FINISHED);
 //# sourceMappingURL=app.js.map

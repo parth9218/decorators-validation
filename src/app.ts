@@ -377,3 +377,7 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> implements Drag
             this.element.querySelector('h2')!.textContent = ProjectStatusMapping[this.projectType].toUpperCase() + ' PROJECTS';
       }
 }
+
+new ProjectInput();
+new ProjectList(ProjectStatus.ACTIVE);
+new ProjectList(ProjectStatus.FINISHED);
